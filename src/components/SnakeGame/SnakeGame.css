@@ -1,0 +1,182 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+:root {
+  --bg-color: #050505;
+  --board-bg: #0a0a0a;
+  --snake-color: #00ffcc;
+  --snake-head: #e1ff00;
+  --food-color: #ff0055;
+  --text-color: #e6edf3;
+  --border-color: #333;
+  --neon-glow: 0 0 10px rgba(0, 255, 204, 0.6);
+}
+
+/* Full Screen Container */
+.snake-wrapper {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-color);
+  font-family: 'Orbitron', sans-serif;
+  color: var(--text-color);
+  /* Cool background pattern */
+  background-image: radial-gradient(circle at center, #111 0%, #000 100%);
+  overflow: hidden;
+}
+
+/* Header & Stats */
+.game-header {
+  width: 80vmin; /* Responsive width */
+  max-width: 600px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2vmin;
+  padding: 10px 20px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+.score-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: #888;
+  letter-spacing: 1px;
+}
+
+.value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--snake-color);
+  text-shadow: 0 0 5px var(--snake-color);
+}
+
+/* The Game Board */
+.game-board {
+  position: relative;
+  /* 80vmin ensures it's always square and fits the screen */
+  width: 80vmin;
+  height: 80vmin;
+  max-width: 600px;
+  max-height: 600px;
+  background-color: var(--board-bg);
+  display: grid;
+  border: 2px solid #444;
+  box-shadow: 0 0 30px rgba(0, 255, 204, 0.15);
+  /* Grid lines */
+  background-image: 
+    linear-gradient(#1a1a1a 1px, transparent 1px),
+    linear-gradient(90deg, #1a1a1a 1px, transparent 1px);
+  background-size: 5% 5%; /* 100% / 20 cells = 5% */
+}
+
+/* Cells */
+.cell {
+  width: 100%;
+  height: 100%;
+  border-radius: 1px;
+}
+
+.snake-body {
+  background-color: var(--snake-color);
+  box-shadow: var(--neon-glow);
+  opacity: 0.8;
+  border-radius: 2px;
+}
+
+.snake-head {
+  background-color: var(--snake-head);
+  box-shadow: 0 0 15px var(--snake-head);
+  z-index: 2;
+  border-radius: 4px;
+}
+
+.food {
+  background-color: var(--food-color);
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--food-color);
+  transform: scale(0.8);
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  from { transform: scale(0.7); opacity: 0.8; }
+  to { transform: scale(1.0); opacity: 1; }
+}
+
+/* Overlays (Pause / Game Over) */
+.overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(5px);
+}
+
+.overlay h2 {
+  font-size: 3rem;
+  color: #ff3333;
+  text-shadow: 0 0 20px red;
+  margin-bottom: 20px;
+}
+
+.overlay.paused h2 {
+  color: #fff;
+  text-shadow: 0 0 20px white;
+}
+
+button.btn-restart {
+  padding: 15px 40px;
+  font-family: inherit;
+  font-size: 1.2rem;
+  background: transparent;
+  color: var(--snake-color);
+  border: 2px solid var(--snake-color);
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+}
+
+button.btn-restart:hover {
+  background: var(--snake-color);
+  color: #000;
+  box-shadow: 0 0 20px var(--snake-color);
+}
+
+/* Fullscreen Button */
+.fullscreen-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid #444;
+  color: #888;
+  padding: 8px 15px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: 0.2s;
+}
+.fullscreen-btn:hover {
+  color: white;
+  border-color: white;
+}
+
+/* Mobile Controls Hint */
+.controls-hint {
+  margin-top: 15px;
+  color: #666;
+  font-size: 0.9rem;
+}
