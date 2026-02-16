@@ -4,7 +4,7 @@ import './SnakeGame.css';
 
 const GRID_SIZE = 20;
 const INITIAL_SPEED = 150;
-const SPEED_INCREMENT = 2; // Speed up by 2ms every food eaten
+const SPEED_INCREMENT = 2;
 
 const SnakeGame = () => {
   // --- State ---
@@ -19,38 +19,36 @@ const SnakeGame = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [speed, setSpeed] = useState(INITIAL_SPEED);
 
-  // Refs for synchronous access inside loop
   const directionRef = useRef('RIGHT');
 
-  // --- Effects ---
+  // --- Logic: Direction Handler ---
+  // This ensures both Keyboard and Mobile buttons follow the same rules
+  const changeDirection = (newDir) => {
+    const currentDir = directionRef.current;
+    
+    if (newDir === 'UP' && currentDir === 'DOWN') return;
+    if (newDir === 'DOWN' && currentDir === 'UP') return;
+    if (newDir === 'LEFT' && currentDir === 'RIGHT') return;
+    if (newDir === 'RIGHT' && currentDir === 'LEFT') return;
 
-  // Handle Keyboard Input
+    directionRef.current = newDir;
+  };
+
+  // --- Effects: Keyboard ---
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (gameOver) return;
-
       if (e.code === 'Space') {
         setIsPaused((prev) => !prev);
       }
-
-      const currentDir = directionRef.current;
       switch (e.key) {
-        case 'ArrowUp':
-          if (currentDir !== 'DOWN') directionRef.current = 'UP';
-          break;
-        case 'ArrowDown':
-          if (currentDir !== 'UP') directionRef.current = 'DOWN';
-          break;
-        case 'ArrowLeft':
-          if (currentDir !== 'RIGHT') directionRef.current = 'LEFT';
-          break;
-        case 'ArrowRight':
-          if (currentDir !== 'LEFT') directionRef.current = 'RIGHT';
-          break;
+        case 'ArrowUp': changeDirection('UP'); break;
+        case 'ArrowDown': changeDirection('DOWN'); break;
+        case 'ArrowLeft': changeDirection('LEFT'); break;
+        case 'ArrowRight': changeDirection('RIGHT'); break;
         default: break;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameOver]);
@@ -59,10 +57,8 @@ const SnakeGame = () => {
   const gameLoop = () => {
     const newSnake = [...snake];
     const head = { ...newSnake[0] };
-
-    // Move Head
     const currentDir = directionRef.current;
-    setDirection(currentDir); // Sync state for render
+    setDirection(currentDir); 
 
     switch (currentDir) {
       case 'UP': head.y -= 1; break;
@@ -72,29 +68,21 @@ const SnakeGame = () => {
       default: break;
     }
 
-    // Check Wall Collision
-    if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+    if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE || 
+        newSnake.some((segment) => segment.x === head.x && segment.y === head.y)) {
       handleGameOver();
       return;
     }
 
-    // Check Self Collision
-    if (newSnake.some((segment) => segment.x === head.x && segment.y === head.y)) {
-      handleGameOver();
-      return;
-    }
+    newSnake.unshift(head);
 
-    newSnake.unshift(head); // Add new head
-
-    // Check Food Collision
     if (head.x === food.x && head.y === food.y) {
       setScore((s) => s + 1);
-      setSpeed((s) => Math.max(50, s - SPEED_INCREMENT)); // Speed up
+      setSpeed((s) => Math.max(50, s - SPEED_INCREMENT));
       generateFood(newSnake);
     } else {
-      newSnake.pop(); // Remove tail
+      newSnake.pop();
     }
-
     setSnake(newSnake);
   };
 
@@ -141,12 +129,9 @@ const SnakeGame = () => {
     }
   };
 
-  // --- Render ---
   return (
     <div className="snake-wrapper">
-      <button className="fullscreen-btn" onClick={toggleFullScreen}>
-        ⛶ FULLSCREEN
-      </button>
+      <button className="fullscreen-btn" onClick={toggleFullScreen}>⛶</button>
 
       <div className="game-header">
         <div className="score-box">
@@ -159,27 +144,20 @@ const SnakeGame = () => {
         </div>
       </div>
 
-      <div 
-        className="game-board" 
-        style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}
-      >
+      <div className="game-board" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
         {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
           const x = i % GRID_SIZE;
           const y = Math.floor(i / GRID_SIZE);
-          
           const isSnakeHead = snake[0].x === x && snake[0].y === y;
           const isSnakeBody = snake.some((seg, idx) => idx !== 0 && seg.x === x && seg.y === y);
           const isFood = food.x === x && food.y === y;
-
           let classes = 'cell';
           if (isSnakeHead) classes += ' snake-head';
           else if (isSnakeBody) classes += ' snake-body';
           if (isFood) classes += ' food';
-
           return <div key={`${x}-${y}`} className={classes} />;
         })}
 
-        {/* Overlays */}
         {gameOver && (
           <div className="overlay">
             <h2>GAME OVER</h2>
@@ -189,14 +167,20 @@ const SnakeGame = () => {
         {isPaused && !gameOver && (
           <div className="overlay paused">
             <h2>PAUSED</h2>
-            <p>Press Space to Resume</p>
+            <button className="btn-restart" onClick={() => setIsPaused(false)}>RESUME</button>
           </div>
         )}
       </div>
 
-      <div className="controls-hint">
-        Use Arrow Keys to Move • Space to Pause
+      {/* MOBILE CONTROLS */}
+      <div className="mobile-controls">
+        <button className="d-pad up" onPointerDown={() => changeDirection('UP')}>▲</button>
+        <button className="d-pad left" onPointerDown={() => changeDirection('LEFT')}>◀</button>
+        <button className="d-pad right" onPointerDown={() => changeDirection('RIGHT')}>▶</button>
+        <button className="d-pad down" onPointerDown={() => changeDirection('DOWN')}>▼</button>
       </div>
+
+      <div className="controls-hint">Desktop: Use Arrows • Mobile: Tap Buttons</div>
     </div>
   );
 };
